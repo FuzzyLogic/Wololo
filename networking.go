@@ -48,7 +48,7 @@ func interfaceToIp(iface string) (*net.UDPAddr, error) {
 func buildWolPacket(config WololoConfig) *WolPacket {
 	// Build the WOL packet
 	var wolPacket WolPacket
-	wolPacket.header = [6]byte{0, 0, 0, 0, 0, 0}
+	wolPacket.header = [6]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
 	for i := 0; i < 16; i++ {
 		wolPacket.macAddr[i] = globalConfig.macAddr
 	}

@@ -18,12 +18,12 @@ func main() {
 	}()
 
 	// Read configuration into global variable
-	localConfig, err := readConfig("/etc/wololo/wololo.config")
-	globalConfig = *localConfig
+	localConfig, err := readConfig("/etc/wololo/wololo.conf")
 	if err != nil {
 		writeToLog(globalLog, "Error reading configuration")
 		panic(err)
 	}
+	globalConfig = *localConfig
 
 	// Start HTTP handler
 	writeToLog(globalLog, "Starting server")

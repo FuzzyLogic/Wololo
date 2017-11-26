@@ -11,7 +11,7 @@ Wololo - Wake on Lan Service
 ## Description
 Wololo is a Wake on Lan (WOL) service application that runs as a simple webserver. The device it is intended to wake up, as well as the address and port it listens on can be configured. When the web service is accessed, it will send a WOL signal with the configured MAC address. This allows Wololo to either be run locally on your machine, or on another device in your network in order to wake the device up remotely.
 
-## Building and Testing
+## Building, Testing and Installing
 Wololo can be built such that only the binary is output, or such that a test environment for debugging and development is also set up.
 
 #### Requirements
@@ -34,7 +34,7 @@ In addition, the container is attached to a newly created network which emulates
 As a result, the container will see two network interfaces. One for listening for requests by the used, and another for sending the WOL packet.
 
 ```bash
-$ make wololo
+$ make
 $ make test
 ```
 
@@ -98,21 +98,19 @@ To stop the Docker container, run the following command.
 $ sudo docker stop wololo-test
 ```
 ## Installation and Configuration
-Once built, the Wololo service must be configured before invoking the binary. The corresponding configuration file is expected under /etc/wololo/wololo.conf. It can be created as follows.
+Once built, the Wololo service must be configured before invoking the binary. The corresponding configuration file is expected under /etc/wololo/wololo.conf. The binary and the provided default configuration can be installed as follows.
 
 ```bash
-$ sudo mkdir /etc/wololo
-$ sudo touch /etc/wololo/wololo.conf
-$ sudo chmod a+r /etc/wololo/wololo.conf
+sudo make install
 ```
-The following shows an exemplary configuration file.
+The following shows the default configuration file. Note that Wololo will not be able to run yet, as the MAC address is not considered valid.
 
 ```bash
 $ cat /etc/wololo/wololo.conf
-Listen=172.17.0.2:5000
+Listen=172.0.0.1:5000
 Broadcast=172.18.255.255:7
 Interface=eth1
-MAC=00:11:22:33:44:55:66
+MAC=00:00:00:00:00:00
 ```
 
 The 'Listen' parameter defines the IP and port on which the Wololo service will listen. The 'Broadcast' parameter defines the subnet and port to broadcast the WOL signal on. Typically the port will be 7 or 9. The 'Interface' specifies the physical interface on which the signal should be sent. The 'MAC' parameter is the MAC address ot the device to wake up.

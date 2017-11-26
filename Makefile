@@ -8,7 +8,7 @@ CONTNAME=wololo-test
 NETNAME=wolnet
 
 .PHONY : all
-all : wololo test
+all : wololo
 
 # Target to build binary
 $(BINNAME): $(GOSRC)
@@ -26,6 +26,13 @@ test: $(TESTSRCS) $(BINNAME)
 	# Create the container and connect to network
 	sudo docker create --name $(CONTNAME) $(IMGNAME)
 	sudo docker network connect $(NETNAME) $(CONTNAME)
+
+# Target to install binary and configuration
+.PHONY: install
+install: $(BINNAME)
+	mkdir -p /etc/wololo
+	install -m 0644 wololo.conf /etc/wololo/wololo.conf
+	install -m 0755 $(BINNAME) /usr/local/bin/$(BINNAME)
 
 .PHONY: clean
 clean:

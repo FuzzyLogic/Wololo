@@ -34,7 +34,7 @@ func Sandbox() error {
         "accept4",
         "epoll_wait",
         "futex",
-        // Not sure about the following
+        // Additional calls identified during testing
         "connect",
         "epoll_create1",
         "sendto",
@@ -42,7 +42,7 @@ func Sandbox() error {
         "getpeername",
     }
 
-    // Create the filter - the default action for unmatched calls is to kill the process
+    // Create the filter - the default action for unmatched calls is to have the syscall return EPERM
     filter, err := seccomp.NewFilter(seccomp.ActErrno.SetReturnCode(int16(syscall.EPERM)))
     //filter, err := seccomp.NewFilter(seccomp.ActAllow)
     if err != nil {

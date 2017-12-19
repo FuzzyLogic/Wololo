@@ -4,6 +4,7 @@ import (
     "testing"
     "net"
     "bytes"
+    "net/http"
 )
 
 // Start a UDP server and wait for a message on port 7.
@@ -45,13 +46,26 @@ func TestWololo(t *testing.T) {
     defer servCon.Close()
 
     // Receive data
+    cn := make(chan int)
     wolBuf := make([]byte, 102)
-    n, _, err := servCon.ReadFromUDP(wolBuf)
+    go func(servCon *net.UDPConn, cn chan int, buf []byte) {
+        tmpN, _, err := servCon.ReadFromUDP(buf)
+        if err != nil {
+            t.Errorf(err.Error())
+        }
+
+        // Output number of read bytes to channel
+        cn <- tmpN
+    }(servCon, cn, wolBuf)
+
+    // Send an HTTP GET to server
+    _, err = http.Get("http://172.17.0.2:5000")
     if err != nil {
         t.Errorf(err.Error())
     }
 
-    // Check number of bytes
+    // Check number of bytes received from cn
+    n := <- cn
     if n != 102 {
         t.Error("Error: Incorrect number of bytes received")
     }

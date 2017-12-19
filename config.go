@@ -1,4 +1,4 @@
-package main
+package wololo
 
 import (
 	"bufio"
@@ -13,11 +13,11 @@ type MACAddress [6]byte
 
 // Configuration information for the application
 type WololoConfig struct {
-	listenIP     string
-	listenPort   string
-	udpBcastAddr string
-	iface        string
-	macAddr      MACAddress
+	ListenIP     string
+	ListenPort   string
+	UdpBcastAddr string
+	Iface        string
+	MacAddr      MACAddress
 }
 
 // Convert a MAC address string from the configuration file
@@ -58,16 +58,16 @@ func parseMAC(macAddr string) (*MACAddress, error) {
 
 // Read the configuration file and extract all relevant information
 // to fill a WololoConfig structure
-func readConfig(path string) (*WololoConfig, error) {
+func ReadConfig(path string) (*WololoConfig, error) {
     // Default settings here
     // Note that only the MAC address MUST be defined in the configuration file
     // An appropriate check is conducted at the end
 	config := WololoConfig{
-		listenIP:     "127.0.0.1",
-		listenPort:   "5000",
-		udpBcastAddr: "255.255.255.255",
-		iface:        "eth0",
-		macAddr:      MACAddress{0, 0, 0, 0, 0, 0},
+		ListenIP:     "127.0.0.1",
+		ListenPort:   "5000",
+		UdpBcastAddr: "255.255.255.255",
+		Iface:        "eth0",
+		MacAddr:      MACAddress{0, 0, 0, 0, 0, 0},
 	}
 
 	// Try to open the configuration file
@@ -102,18 +102,18 @@ func readConfig(path string) (*WololoConfig, error) {
 
 		// Check if something was matched
 		if len(matchListen) != 0 {
-			config.listenIP = matchListen[1]
-			config.listenPort = matchListen[2]
+			config.ListenIP = matchListen[1]
+			config.ListenPort = matchListen[2]
 		} else if len(matchMAC) != 0 {
 			macAddr, err := parseMAC(matchMAC[1])
 			if err != nil {
 				return nil, errors.New("Error in configuration file")
 			}
-			config.macAddr = *macAddr
+			config.MacAddr = *macAddr
 		} else if len(matchBcast) > 0 {
-			config.udpBcastAddr = matchBcast[1]
+			config.UdpBcastAddr = matchBcast[1]
 		} else if len(matchIface) > 0 {
-			config.iface = matchIface[1]
+			config.Iface = matchIface[1]
 		} else {
 			return nil, errors.New("Error in configuration file")
 		}
@@ -121,7 +121,7 @@ func readConfig(path string) (*WololoConfig, error) {
 
     // The MAC address must be set
     nullAddr := MACAddress{0, 0, 0, 0, 0, 0}
-    if nullAddr == config.macAddr {
+    if nullAddr == config.MacAddr {
         return nil, errors.New("No valid MAC address in configuration file")
     }
 

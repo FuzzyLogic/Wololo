@@ -1,0 +1,7 @@
+{
+    "listenAddr": "0.0.0.0",
+    "listenPort": "5000",
+    "udpBcastAddr": "255.255.255.255:7",
+    "iface": "eth0",
+    "macAddr": "00:11:22:33:44:55"
+}

@@ -1,0 +1,29 @@
+version: "3.3"
+
+services:
+  # The Wololo server that will wake the device upon request  
+  wololo:
+    container_name: wololo-test_wololo
+    build:
+      context: ./../
+      dockerfile: ./test/wololo/Dockerfile
+    ports:
+      - "5000:5000"
+    networks:
+      - testnet
+
+  # The device to be woken up
+  device:
+    container_name: wololo-test_device
+    build:
+        context: ./../
+        dockerfile: ./test/device/Dockerfile
+    networks:
+      - testnet
+    depends_on:
+      - "wololo"
+
+networks:
+  testnet:
+    driver: bridge
+    #internal: true

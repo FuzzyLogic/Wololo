@@ -13,6 +13,7 @@ import (
 
 var globalConfig wololo.WololoConfig
 var globalLog *syslog.Writer
+var globalVerbose bool
 
 // HTTP handler function to handle requests.
 // This handler will send the WOL packet to the configured destination.
@@ -67,7 +68,6 @@ func wolHandler(respWr http.ResponseWriter, req *http.Request) {
 	}
 }
 
-
 func main() {
 	// Command line arg parsing
 	configPathPtr := flag.String("config", "/etc/wololo/config.json", "Path to Wololo configuration file")
@@ -89,11 +89,12 @@ func main() {
 	}
 
 	// Read configuration into global variable
-	globalConfig, err := wololo.ReadConfig(*configPathPtr)
+	globalConfigPtr, err := wololo.ReadConfig(*configPathPtr)
 	if err != nil {
 		wololo.WriteToLog(globalLog, "Error reading configuration")
 		panic(err)
 	}
+	globalConfig = *globalConfigPtr
 
 	// Start HTTP handler
 	wololo.WriteToLog(globalLog, "Starting server")

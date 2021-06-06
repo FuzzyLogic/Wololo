@@ -10,7 +10,7 @@ RUN mkdir /testdir
 
 # Create config related files/directories
 RUN mkdir -p /etc/wololo
-RUN touch /etc/wololo/wololo.config
+RUN touch /etc/wololo/config.json
 
 # Copy the application files
 RUN echo $BINPATH

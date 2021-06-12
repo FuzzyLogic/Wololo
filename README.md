@@ -25,6 +25,11 @@ $ make build
 ```
 The binary is then located in the build/ directory.
 
+Wololo can also be built as a Snap. In order to do this, run the following from the root of the repository.
+```
+$ snapcraft
+```
+
 ### Installing Wololo
 
 To install Wololo, run the following.

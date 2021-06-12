@@ -82,5 +82,4 @@ wololo-test_device | 2021/06/12 19:19:07 Success!
 ## TODOs <a name="todos"></a>
 
 The following list is a set of tasks that should be done at some point.
-* Integrate an HTTP GET into the wololo_test.go unit test, rather than having to use curl to trigger the test
 * Package and provide Wololo as a snap using snapcraft

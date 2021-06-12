@@ -1,2 +1,7 @@
 build/*
 !build/.gitkeep
+parts/*
+prime/*
+snap/*
+stage/*
+wololo_*

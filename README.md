@@ -83,3 +83,4 @@ wololo-test_device | 2021/06/12 19:19:07 Success!
 
 The following list is a set of tasks that should be done at some point.
 * Package and provide Wololo as a snap using snapcraft
+* Wake multiple devices, based on contacted endpoint

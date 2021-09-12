@@ -11,7 +11,35 @@ parts:
     go-importpath: github.com/FuzzyLogic/Wololo
     source: .
     source-type: git
+
+    # The 'device' binary, used for testing,
+    # is automatically built but not required
+    # in the snap.
+    stage:
+      - -bin/device
+
+  # Copy the default config.json and create a symbolic
+  # link from $SNAP_DATA to /etc/wololo, s.t. the file can
+  # be modified (see layout below). The default config file included in the
+  # snap is copied to $SNAP_DATA on installation using a hook.
+  wololo-global-config:
+    plugin: dump
+    source: './configs/'
+    source-type: local
+    filesets:
+      config-file: [ 'etc/wololo/config.json' ]
+    organize:
+      'config.json': 'etc/wololo/config.json'
+    stage:
+      - $config-file
+    prime:
+      - $config-file
+    
 apps:
   wololo:
     command: bin/wololo
     daemon: simple
+
+layout:
+  /etc/wololo/config.json:
+    symlink: '$SNAP_DATA/config.json'

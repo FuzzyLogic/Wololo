@@ -1,0 +1,4 @@
+#!/bin/sh -e
+
+# Copy the default configuration file on installation
+cp "$SNAP/etc/wololo/config.json" "$SNAP_DATA/config.json"

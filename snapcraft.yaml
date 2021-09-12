@@ -4,13 +4,11 @@ summary: Simple Wake-on-LAN (WOL) service.
 description: |
   The Wololo service can be used to wake a configured device via a single GET request.
 confinement: devmode
-base: core18
+base: core20
 parts:
   wololo:
     plugin: go
-    go-importpath: github.com/FuzzyLogic/Wololo
     source: .
-    source-type: git
 
     # The 'device' binary, used for testing,
     # is automatically built but not required

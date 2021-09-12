@@ -3,8 +3,9 @@ version: git
 summary: Simple Wake-on-LAN (WOL) service.
 description: |
   The Wololo service can be used to wake a configured device via a single GET request.
-confinement: devmode
+confinement: strict
 base: core20
+grade: devel
 parts:
   wololo:
     plugin: go
@@ -37,6 +38,8 @@ apps:
   wololo:
     command: bin/wololo
     daemon: simple
+    plugs:
+      - network-bind
 
 layout:
   /etc/wololo/config.json:

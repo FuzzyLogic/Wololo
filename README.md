@@ -1,4 +1,7 @@
 Wololo - Wake on Lan Service
+
+[![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/wololo)
+
 ======
 ## Synopsys
 
@@ -24,6 +27,11 @@ To build the `wololo` command, run the following from the repository root.
 $ make build
 ```
 The binary is then located in the build/ directory.
+
+Wololo can also be built as a Snap. In order to do this, run the following from the root of the repository.
+```
+$ snapcraft
+```
 
 ### Installing Wololo
 
@@ -82,5 +90,4 @@ wololo-test_device | 2021/06/12 19:19:07 Success!
 ## TODOs <a name="todos"></a>
 
 The following list is a set of tasks that should be done at some point.
-* Package and provide Wololo as a snap using snapcraft
-* Wake multiple devices, based on contacted endpoint
+* Wake arbitry devices, based on contacted endpoint (config file only specifies default device to wake up)

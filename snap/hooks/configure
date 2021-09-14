@@ -1,0 +1,172 @@
+#!/bin/sh
+
+DEFAULT_LISTEN_ADDR="127.0.0.1"
+DEFAULT_LISTEN_PORT="5000"
+DEFAULT_UDP_BCAST_ADDR="255.255.255.255:7"
+DEFAULT_IFACE="eth0"
+DEFAULT_MAC_ADDR="01:02:03:04:05:06"
+
+restart_required=0
+
+update_config_file()
+{
+        # Pull the current configuration and write a JSON file
+        listen_addr="$(snapctl get listenaddr)"
+        listen_port="$(snapctl get listenport)"
+        udp_bcast_addr="$(snapctl get udpbcastaddr)"
+        iface="$(snapctl get iface)"
+        mac_addr="$(snapctl get macaddr)"
+
+        echo "{" > "${SNAP_DATA}/config.json"
+        echo "  \"listenAddr\": \"${listen_addr}\"," >> "${SNAP_DATA}/config.json"
+        echo "  \"listenPort\": \"${listen_port}\"," >> "${SNAP_DATA}/config.json"
+        echo "  \"udpBcastAddr\": \"${udp_bcast_addr}\"," >> "${SNAP_DATA}/config.json"
+        echo "  \"iface\": \"${iface}\"," >> "${SNAP_DATA}/config.json"
+        echo "  \"macAddr\": \"${mac_addr}\"" >> "${SNAP_DATA}/config.json"
+        echo "}" >> "${SNAP_DATA}/config.json"
+
+        # If we change the config, the service will need to be restarted
+        restart_required="1"
+}
+
+handle_listen_addr_config()
+{
+        # Get current and previous values if available
+        listen_addr="$(snapctl get listenaddr)"
+        listen_addr_previous="$(snapctl get private.listenaddr)"
+        if [ -z "${listen_addr}" ]; then
+                listen_addr="${DEFAULT_LISTEN_ADDR}"
+        fi
+
+        # Check if changes have been made
+        if [ "${listen_addr}" = "${listen_addr_previous}" ]; then
+                return 0
+        fi
+
+        # New value, validate information: Very basic IP address verification (server will also fail to run on invalid configuration option)
+        if ! expr "${listen_addr}" : '^\([0-9]\{1,3\}\.\)\{3\}[0-9]\{1,3\}$' > /dev/null; then
+                echo "\"${listen_addr}\" is not a valid address for listening" >&2
+                return 1
+        fi
+
+        # Set new value and keep track of previous
+        snapctl set listenaddr="${listen_addr}"
+        snapctl set private.listenaddr="${listen_addr}"
+
+        # Update configuration file and restart service with new config
+        update_config_file
+}
+
+handle_listen_port_config()
+{
+        # Get current and previous values if available
+        listen_port="$(snapctl get listenport)"
+        listen_port_previous="$(snapctl get private.listenport)"
+        if [ -z "${listen_port}" ]; then
+                listen_port="${DEFAULT_LISTEN_PORT}"
+        fi
+
+        # Check if changes have been made
+        if [ "${listen_port}" = "${listen_port_previous}" ]; then
+                return 0
+        fi
+
+        # New value, validate information: Very basic IP address verification (server will also fail to run on invalid configuration option)
+        if ! expr "${listen_port}" : '^[0-9]\+$' > /dev/null; then
+                echo "\"${listen_port}\" is not a valid port for listening" >&2
+                return 1
+        fi
+
+        # Set new value and keep track of previous
+        snapctl set listenport="${listen_port}"
+        snapctl set private.listenport="${listen_port}"
+
+        # Update configuration file and restart service with new config
+        update_config_file
+}
+
+handle_udp_bcast_addr_config()
+{
+        udp_bcast_addr="$(snapctl get udpbcastaddr)"
+        udp_bcast_addr_previous="$(snapctl get private.udpbcastaddr)"
+
+        if [ -z "${udp_bcast_addr}" ]; then
+                udp_bcast_addr="${DEFAULT_UDP_BCAST_ADDR}"
+        fi
+
+        # Check if changes have been made
+        if [ "${udp_bcast_addr}" = "${udp_bcast_addr_previous}" ]; then
+                return 0
+        fi
+
+        # New value - very basic IP address + port verification (server will also fail to run on invalid configuration option)
+        if ! expr "${udp_bcast_addr}" : '^\([0-9]\{1,3\}\.\)\{3\}[0-9]\{1,3\}:[0-9]\+$' > /dev/null; then
+                echo "\"${udp_bcast_addr}\" is not a valid destination for broadcasting WOL packets" >&2
+                return 1
+        fi
+
+        # Set new value and keep track of previous
+        snapctl set udpbcastaddr="${udp_bcast_addr}"
+        snapctl set private.udpbcastaddr="${udp_bcast_addr}"
+
+        # Update configuration file and restart service with new config
+        update_config_file
+}
+
+handle_iface_config()
+{
+        # Get current and previous values if available
+        iface="$(snapctl get iface)"
+        iface_previous="$(snapctl get private.iface)"
+        if [ -z "${iface}" ]; then
+                iface="${DEFAULT_IFACE}"
+        fi
+
+        # Check if changes have been made
+        if [ "${iface}" = "${iface_previous}" ]; then
+                return 0
+        fi
+
+        # Set new value and keep track of previous
+        snapctl set iface="${iface}"
+        snapctl set private.iface="${iface}"
+
+        # Update configuration file and restart service with new config
+        update_config_file
+}
+
+handle_mac_addr_config()
+{
+        # Get current and previous values if available
+        mac_addr="$(snapctl get macaddr)"
+        mac_addr_previous="$(snapctl get private.macaddr)"
+        if [ -z "${mac_addr}" ]; then
+                mac_addr="${DEFAULT_MAC_ADDR}"
+        fi
+
+        # Check if changes have been made
+        if [ "${mac_addr}" = "${mac_addr_previous}" ]; then
+                return 0
+        fi
+
+        # New value, validate MAC address format
+        if ! expr "${mac_addr}" : '^\([0-9a-fA-F]\{2\}\:\)\{5\}[0-9a-fA-F]\{2\}$' > /dev/null; then
+                echo "\"${mac_addr}\" is not a valid MAC address" >&2
+                return 1
+        fi
+
+        # Set new value and keep track of previous
+        snapctl set macaddr="${mac_addr}"
+        snapctl set private.macaddr="${mac_addr}"
+
+        # Update configuration file and restart service with new config
+        update_config_file
+}
+
+# Run configuration
+handle_listen_addr_config && \
+handle_listen_port_config && \
+handle_udp_bcast_addr_config && \
+handle_iface_config && \
+handle_mac_addr_config && \
+if [ "${restart_required}" = "1" ]; then snapctl restart wololo; fi

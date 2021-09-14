@@ -1,0 +1,50 @@
+name: wololo
+version: git
+summary: Simple Wake-on-LAN (WOL) service.
+description: |
+  The Wololo service can be used to wake a configured device via a single GET request.
+confinement: strict
+base: core20
+grade: devel
+architectures:
+  - build-on: amd64
+  - build-on: armhf
+  - build-on: arm64
+parts:
+  wololo:
+    plugin: go
+    source: .
+
+    # The 'device' binary, used for testing,
+    # is automatically built but not required
+    # in the snap.
+    stage:
+      - -bin/device
+
+  # Copy the default config.json and create a symbolic
+  # link from $SNAP_DATA to /etc/wololo, s.t. the file can
+  # be modified (see layout below). The default config file included in the
+  # snap is copied to $SNAP_DATA on installation using a hook.
+  wololo-global-config:
+    plugin: dump
+    source: './configs/'
+    source-type: local
+    filesets:
+      config-file: [ 'etc/wololo/config.json' ]
+    organize:
+      'config.json': 'etc/wololo/config.json'
+    stage:
+      - $config-file
+    prime:
+      - $config-file
+    
+apps:
+  wololo:
+    command: bin/wololo
+    daemon: simple
+    plugs:
+      - network-bind
+
+layout:
+  /etc/wololo/config.json:
+    symlink: '$SNAP_DATA/config.json'

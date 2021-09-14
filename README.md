@@ -90,4 +90,4 @@ wololo-test_device | 2021/06/12 19:19:07 Success!
 ## TODOs <a name="todos"></a>
 
 The following list is a set of tasks that should be done at some point.
-* Wake multiple devices, based on contacted endpoint
+* Wake arbitry devices, based on contacted endpoint (config file only specifies default device to wake up)

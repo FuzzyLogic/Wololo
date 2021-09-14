@@ -94,3 +94,4 @@ The following list is a set of tasks that should be done at some point.
   * Remove necessitiy to change all-zeros MAC address in config file
   * Request can include MAC address and / or broadcast address + port
   * Add a minimum wait time (e.g. 3 seconds) between requests to avoid any sort of DoS on the network through this application
+* Improve documentation (here, and on Snap store)

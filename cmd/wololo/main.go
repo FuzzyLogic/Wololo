@@ -19,32 +19,65 @@ var globalVerbose bool
 // This handler will send the WOL packet to the configured destination.
 // The response will contain information on whether the packet was transmitted or an error occurred.
 func wolHandler(respWr http.ResponseWriter, req *http.Request) {
-	wolPacket := wololo.BuildWolPacket(globalConfig)
+	// Get WOL parameters from request or, alternatively, use default values from config
+	var macAddr wololo.MACAddress
+	paramMACAddr := req.URL.Query().Get("macaddr")
+	if paramMACAddr != "" {
+		err := wololo.CheckMACAddr(paramMACAddr)
+		if err != nil {
+			wololo.WriteToLog(globalLog, "Error: " + err.Error())
+			fmt.Fprintf(respWr, "Error: " + err.Error() + "\n")
+			return
+		} 
+		convertedMacAddr, err := wololo.ParseMAC(paramMACAddr)
+		if err != nil {
+			wololo.WriteToLog(globalLog, "Error: " + err.Error())
+			fmt.Fprintf(respWr, "Error: " + err.Error() + "\n")
+			return
+		}
+		macAddr = *convertedMacAddr
+	} else {
+		macAddr = globalConfig.MacAddr
+	}
 
-	// WOL needs to be broadcasted, create UDPAddress from config
-	bcastUDPAddr, err := net.ResolveUDPAddr("udp", globalConfig.UdpBcastAddr)
+	// Build the packet, consisting of indicator and target device's MAC address
+	wolPacket := wololo.BuildWolPacket(macAddr)
+
+	// WOL needs to be broadcasted, create UDPAddress from config or query parameters
+	var udpBcastAddr string
+	paramUdpBcastAddr := req.URL.Query().Get("udpbcastaddr")
+	if paramUdpBcastAddr != "" {
+		err := wololo.CheckBcastAddr(paramUdpBcastAddr)
+		if err != nil {
+			wololo.WriteToLog(globalLog, "Error: " + err.Error())
+			fmt.Fprintf(respWr, "Error: " + err.Error() + "\n")
+			return
+		}
+		udpBcastAddr = paramUdpBcastAddr
+	} else {
+		udpBcastAddr = globalConfig.UdpBcastAddr
+	}
+
+	resolvedUdpBcastAddr, err := net.ResolveUDPAddr("udp", udpBcastAddr)
 	if err != nil {
-		wololo.WriteToLog(globalLog, "Unable to obtain UDP broadcast address object")
-		fmt.Fprintf(respWr, "Unable to obtain UDP broadcast address object")
-		fmt.Fprintf(respWr, "Error: "+err.Error())
+		wololo.WriteToLog(globalLog, "Error: " + err.Error())
+		fmt.Fprintf(respWr, "Error: " + err.Error() + "\n")
 		return
 	}
 
-	// Get local IP address from specified interfaces
+	// Get local IP address from specified interface
 	localUDPAddr, err := wololo.InterfaceToIp(globalConfig.Iface)
 	if err != nil {
-		wololo.WriteToLog(globalLog, "Unable to get local IP address from interface "+globalConfig.Iface)
-		fmt.Fprintf(respWr, "Unable to get local IP address from interface\n"+globalConfig.Iface)
-		fmt.Fprintf(respWr, "Error: "+err.Error()+"\n")
+		wololo.WriteToLog(globalLog, "Error: " + err.Error())
+		fmt.Fprintf(respWr, "Error: " + err.Error() + "\n")
 		return
 	}
 
 	// Open UDP connection to send WOL packet
-	con, err := net.DialUDP("udp", localUDPAddr, bcastUDPAddr)
+	con, err := net.DialUDP("udp", localUDPAddr, resolvedUdpBcastAddr)
 	if err != nil {
-		wololo.WriteToLog(globalLog, "Unable to create UDP connection")
-		fmt.Fprintf(respWr, "Unable to create UDP connection\n")
-		fmt.Fprintf(respWr, "Error: "+err.Error()+"\n")
+		wololo.WriteToLog(globalLog, "Error: " + err.Error())
+		fmt.Fprintf(respWr, "Error: " + err.Error() + "\n")
 		return
 	}
 	defer con.Close()
@@ -55,8 +88,7 @@ func wolHandler(respWr http.ResponseWriter, req *http.Request) {
 	bytesWritten, err := con.Write(packetBuf.Bytes())
 	if err != nil {
 		wololo.WriteToLog(globalLog, "Error sending WOL packet")
-		fmt.Fprintf(respWr, "Error sending WOL packet\n")
-		fmt.Fprintf(respWr, "Error: "+err.Error()+"\n")
+		fmt.Fprintf(respWr, "Error: " + err.Error() + "\n")
 	} else if bytesWritten != 102 {
 		// Not an error but something went wrong - inform user
 		wololo.WriteToLog(globalLog, "Warning: WOL packet transmission may have been incomplete")
@@ -64,7 +96,7 @@ func wolHandler(respWr http.ResponseWriter, req *http.Request) {
 	} else {
 		// Notify user that WOL packet was sent
 		wololo.WriteToLog(globalLog, "WOL packet sent")
-		fmt.Fprintf(respWr, "Device is off...\nWOLOLO\nDevice is on!")
+		fmt.Fprintf(respWr, "Device is off...\nWOLOLO\nDevice (%s) is on!", macAddr)
 	}
 }
 

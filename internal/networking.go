@@ -41,12 +41,12 @@ func InterfaceToIp(iface string) (*net.UDPAddr, error) {
 }
 
 // Construct the raw WOL packet
-func BuildWolPacket(config WololoConfig) *WolPacket {
+func BuildWolPacket(macAddr MACAddress) *WolPacket {
 	// Build the WOL packet
 	var wolPacket WolPacket
 	wolPacket.header = [6]byte{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
 	for i := 0; i < 16; i++ {
-		wolPacket.macAddr[i] = config.MacAddr
+		wolPacket.macAddr[i] = macAddr
 	}
 
 	return &wolPacket

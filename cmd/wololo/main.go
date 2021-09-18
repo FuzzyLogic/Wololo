@@ -121,13 +121,6 @@ func main() {
 		}
 	}()
 
-	// Apply seccomp sandbox to application if activated
-	err := wololo.Sandbox()
-	if err != nil {
-		wololo.WriteToLog(globalLog, "Error sandboxing application")
-		panic(err)
-	}
-
 	// Read configuration into global variable
 	globalConfigPtr, err := wololo.ReadConfig(*configPathPtr)
 	if err != nil {

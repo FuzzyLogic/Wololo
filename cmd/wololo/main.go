@@ -8,12 +8,14 @@ import (
 	"fmt"
 	"encoding/binary"
 	"bytes"
+	"time"
 	wololo "github.com/FuzzyLogic/Wololo/internal"
 )
 
 var globalConfig wololo.WololoConfig
 var globalLog *syslog.Writer
 var globalVerbose bool
+var finishedRequestWait chan bool
 
 // HTTP handler function to handle requests.
 // This handler will send the WOL packet to the configured destination.
@@ -73,8 +75,14 @@ func wolHandler(respWr http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Open UDP connection to send WOL packet
+	// Open UDP connection to send WOL packet and start timer s.t. network flooding
+	// through too many requests is mitigated
+	<- finishedRequestWait
 	con, err := net.DialUDP("udp", localUDPAddr, resolvedUdpBcastAddr)
+	go func(finishedRequestWait chan bool) {
+		time.Sleep(3 * time.Second)
+		finishedRequestWait <- true
+	}(finishedRequestWait)
 	if err != nil {
 		wololo.WriteToLog(globalLog, "Error: " + err.Error())
 		fmt.Fprintf(respWr, "Error: " + err.Error() + "\n")
@@ -129,6 +137,8 @@ func main() {
 	globalConfig = *globalConfigPtr
 
 	// Start HTTP handler
+	finishedRequestWait = make(chan bool, 1)
+	finishedRequestWait <- true
 	wololo.WriteToLog(globalLog, "Starting server")
 	http.HandleFunc("/", wolHandler)
 	if err := http.ListenAndServe(globalConfig.ListenAddr+":"+globalConfig.ListenPort, nil); err != nil {

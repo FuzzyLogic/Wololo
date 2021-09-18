@@ -90,8 +90,5 @@ wololo-test_device | 2021/06/12 19:19:07 Success!
 ## TODOs <a name="todos"></a>
 
 The following list is a set of tasks that should be done at some point.
-* Wake arbitry devices, based on contacted endpoint (config file only specifies default device to wake up)
-  * Remove necessitiy to change all-zeros MAC address in config file
-  * Request can include MAC address and / or broadcast address + port
-  * Add a minimum wait time (e.g. 3 seconds) between requests to avoid any sort of DoS on the network through this application
+* Request output should be a JSON structure that signal success / error (and a message if needed)
 * Improve documentation (here, and on Snap store)

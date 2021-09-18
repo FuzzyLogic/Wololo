@@ -104,7 +104,7 @@ func wolHandler(respWr http.ResponseWriter, req *http.Request) {
 	} else {
 		// Notify user that WOL packet was sent
 		wololo.WriteToLog(globalLog, "WOL packet sent")
-		fmt.Fprintf(respWr, "Device is off...\nWOLOLO\nDevice (%s) is on!", macAddr)
+		fmt.Fprintf(respWr, "Device is off...\nWOLOLO\nDevice is on!")
 	}
 }
 

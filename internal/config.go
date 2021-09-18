@@ -23,7 +23,7 @@ type WololoConfig struct {
 
 // Convert a MAC address string from the configuration file
 // to the MACAddress data structure
-func parseMAC(macAddr string) (*MACAddress, error) {
+func ParseMAC(macAddr string) (*MACAddress, error) {
 	var retVal MACAddress
 
 	curByteIdx := 0
@@ -57,6 +57,51 @@ func parseMAC(macAddr string) (*MACAddress, error) {
 	return &retVal, nil
 }
 
+func checkListenAddr(listenAddr string) error {
+	listenAddrRe := regexp.MustCompile(`[0-9.]+`)
+	if ok := listenAddrRe.Match([]byte(listenAddr)); !ok {
+		return errors.New("Invalid listen address \"" + listenAddr + "\"")
+	}
+
+	return nil
+}
+
+func checkListenPort(listenPort string) error {
+	listenPortRe := regexp.MustCompile(`[0-9]+`)
+	if ok := listenPortRe.Match([]byte(listenPort)); !ok {
+		return errors.New("Invalid listen port \"" + listenPort + "\"")
+	}
+
+	return nil
+}
+
+func CheckBcastAddr(bcastAddr string) error {
+	bcastAddrRe := regexp.MustCompile(`[0-9.]+:[0-9]+`)
+	if ok := bcastAddrRe.Match([]byte(bcastAddr)); !ok {
+		return errors.New("Invalid UDP broadcast address \"" + bcastAddr + "\"")
+	}
+
+	return nil
+}
+
+func checkIface(iface string) error {
+	ifaceRe := regexp.MustCompile(`[a-zA-Z0-9-]+`)
+	if ok := ifaceRe.Match([]byte(iface)); !ok {
+		return errors.New("Invalid interface \"" + iface + "\"")
+	}
+
+	return nil
+}
+
+func CheckMACAddr(macAddr string) error {
+	macRe := regexp.MustCompile(`^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$`)
+	if ok := macRe.Match([]byte(macAddr)); !ok {
+		return errors.New("Invalid MAC address \"" + macAddr + "\"")
+	}
+
+	return nil
+}
+
 // Read the configuration file and extract all relevant information
 // to fill a WololoConfig structure
 func ReadConfig(path string) (*WololoConfig, error) {
@@ -73,40 +118,36 @@ func ReadConfig(path string) (*WololoConfig, error) {
 	}
 
 	// Regular expressions for some very basic config data checking
-	listenAddrRe := regexp.MustCompile(`[0-9.]+`)
-	if ok := listenAddrRe.Match([]byte(configData.ListenAddr)); !ok {
-		return nil, errors.New("Invalid listen address")
+	err = checkListenAddr(configData.ListenAddr)
+	if err != nil {
+		return nil, err
 	}	
 
-	listenPortRe := regexp.MustCompile(`[0-9]+`)
-	if ok := listenPortRe.Match([]byte(configData.ListenPort)); !ok {
-		return nil, errors.New("Invalid listen port")
-	}
+	err = checkListenPort(configData.ListenPort)
+	if err != nil {
+		return nil, err
+	}	
 
-	bcastAddrRe := regexp.MustCompile(`[0-9.]+:[0-9]+`)
-	if ok := bcastAddrRe.Match([]byte(configData.UdpBcastAddr)); !ok {
-		return nil, errors.New("Invalid UDP broadcast address")
-	}
+	err = CheckBcastAddr(configData.UdpBcastAddr)
+	if err != nil {
+		return nil, err
+	}	
 
-	ifaceRe := regexp.MustCompile(`[a-zA-Z0-9]+`)
-	if ok := ifaceRe.Match([]byte(configData.Iface)); !ok {
-		return nil, errors.New("Invalid interface")
-	}
-
-	macRe := regexp.MustCompile(`^([0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$`)
-	if ok := macRe.Match([]byte(configData.MacAddrStr)); !ok {
-		return nil, errors.New("Invalid MAC address")
-	}
-
-    // The MAC address must be set
-    nullAddr := MACAddress{0, 0, 0, 0, 0, 0}
-	convertedMacAddr, err := parseMAC(configData.MacAddrStr)
+	err = checkIface(configData.Iface)
 	if err != nil {
 		return nil, err
 	}
-    if nullAddr == *convertedMacAddr {
-        return nil, errors.New("MAC address cannot be all zeros")
-    }
+
+	err = CheckMACAddr(configData.MacAddrStr)
+	if err != nil {
+		return nil, err
+	}	
+
+    // Convert the MAC address
+	convertedMacAddr, err := ParseMAC(configData.MacAddrStr)
+	if err != nil {
+		return nil, err
+	}
 	configData.MacAddr = *convertedMacAddr
 
 	return &configData, nil
